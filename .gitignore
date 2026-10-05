@@ -14,3 +14,7 @@ appsettings.Development.json
 # Archivos del sistema operativo
 .DS_Store
 Thumbs.db
+
+# Archivos de base de datos de desarrollo local
+
+SecureCampus.db
