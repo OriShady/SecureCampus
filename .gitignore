@@ -1,0 +1,16 @@
+# Directorios de compilacion
+bin/
+obj/
+
+# Configuraciones de desarrollo local
+appsettings.Development.json
+*.user
+
+# Archivos de bases de datos locales SQLite
+*.db
+*.db-shm
+*.db-wal
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db

@@ -1,0 +1,6 @@
+@SecureCampus.API_HostAddress = http://localhost:5110
+
+GET {{SecureCampus.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
