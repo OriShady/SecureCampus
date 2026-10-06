@@ -12,5 +12,11 @@ namespace SecureCampus.API.Data
 
         /// Representa la tabla Usuarios en la base de datos.
         public DbSet<Usuario> Usuarios { get; set; }
+        ///
+        public DbSet<Curso> Cursos { get; set; }
+        /// 
+        public DbSet<Calificacion> Calificaciones { get; set; }
+        /// 
+        public DbSet<Documento> Documentos { get; set; }
     }
 }

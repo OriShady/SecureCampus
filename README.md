@@ -1,30 +1,29 @@
 # SecureCampus API
 
-## Contexto del Proyecto
-SecureCampus es un sistema de gestión académica diseñado para la administración de perfiles de usuarios, consulta de calificaciones y gestión de documentos. 
+### Contexto del Proyecto
+SecureCampus es un sistema de gestión académica diseñado para la administración de perfiles de usuarios, consulta de calificaciones y gestión de documentos.
 
 Este proyecto se desarrolla como parte práctica de la asignatura de Desarrollo Seguro. La metodología de construcción consta de dos fases estratégicas:
-1. **Fase Funcional:** Construcción inicial de la API de manera estrictamente funcional e insegura. En esta etapa se omiten deliberadamente controles de acceso, cifrado de datos, manejo seguro de sesiones y saneamiento de entradas.
-2. **Fase de Aseguramiento:** El sistema será sometido a metodologías de modelado de amenazas y pruebas de seguridad (análisis estático SAST, análisis dinámico DAST y análisis interactivo IAST) para identificar las vulnerabilidades resultantes de la primera fase. Posteriormente, se implementarán los controles correspondientes y la gobernanza de seguridad a lo largo del Ciclo de Vida de Desarrollo de Software (SDLC).
+1. **Fase Funcional:** Construcción inicial de la API de manera estrictamente funcional e insegura. Se omiten deliberadamente controles de acceso, cifrado de datos, manejo seguro de sesiones y saneamiento de entradas.
+2. **Fase de Aseguramiento:** El sistema es sometido a metodologías de modelado de amenazas y pruebas de seguridad (análisis estático SAST, análisis dinámico DAST y análisis interactivo IAST) para identificar las vulnerabilidades resultantes de la primera fase. Posteriormente, se implementan los controles correspondientes y la gobernanza de seguridad a lo largo del Ciclo de Vida de Desarrollo de Software (SDLC).
 
 ## Alcance del Proyecto
 
 ### Requisitos Funcionales
-El sistema debe permitir las siguientes operaciones principales:
-*   **Gestión de Usuarios:** Registro, autenticación y administración de perfiles, diferenciando entre Estudiantes, Docentes y Administradores.
-*   **Gestión de Calificaciones:** Captura y modificación de calificaciones por parte del personal docente, y consulta del historial académico por parte de los estudiantes.
-*   **Gestión de Documentos:** Carga, almacenamiento y descarga de archivos relacionados con el perfil del estudiante (comprobantes, tareas o constancias).
+El sistema permite las siguientes operaciones principales:
+*   **Gestión de Usuarios:** Registro, autenticación y administración de perfiles, con diferenciación entre Estudiantes, Docentes y Administradores.
+*   **Gestión de Calificaciones:** Captura y modificación de calificaciones por parte del personal docente, y consulta del historial académico para estudiantes.
+*   **Gestión de Documentos:** Carga, almacenamiento y descarga de archivos vinculados al perfil del estudiante.
 *   **Gestión de Cursos/Materias:** Creación de asignaturas y asignación de estudiantes y docentes a los grupos correspondientes.
 
 ### Requisitos No Funcionales (Fase Funcional Inicial)
 *   **Arquitectura:** Sistema cliente-servidor basado en una API REST (ASP.NET Core 10.0) y una interfaz de usuario independiente.
 *   **Persistencia:** Almacenamiento estructurado mediante SQLite.
-*   **Ausencia Intencional de Seguridad:** El sistema operará temporalmente almacenando contraseñas en texto plano, sin tokens de autorización robustos (JWT) ni validación estricta de entradas. Esto es un requerimiento pedagógico para permitir el descubrimiento de vulnerabilidades.
+*   **Ausencia Intencional de Seguridad:** El sistema opera temporalmente almacenando contraseñas en texto plano, sin tokens de autorización robustos (JWT) ni validación estricta de entradas. Requerimiento pedagógico para el descubrimiento de vulnerabilidades.
 
 ### Requisitos No Funcionales (Fase de Aseguramiento SDLC)
-*   **Auditoría de Código:** El repositorio debe ser compatible con la integración de herramientas de análisis estático (SAST) y análisis dinámico (DAST).
-*   **Mitigación y Cumplimiento:** Tras la auditoría, el sistema deberá ser refactorizado para implementar controles criptográficos, saneamiento de datos y políticas de control de acceso alineadas a los estándares de OWASP.
-
+*   **Auditoría de Código:** Compatibilidad del repositorio con la integración de herramientas de análisis estático (SAST) y análisis dinámico (DAST).
+*   **Mitigación y Cumplimiento:** Refactorización del sistema tras la auditoría para implementar controles criptográficos, saneamiento de datos y políticas de control de acceso alineadas a los estándares de OWASP.
 
 ## Requisitos del Sistema
 Para ejecutar y colaborar en el desarrollo de este proyecto, es necesario contar con el siguiente entorno instalado:
@@ -58,7 +57,7 @@ El ecosistema de .NET no requiere la configuración de entornos virtuales aislad
 Clonar el repositorio en el equipo local y acceder al directorio principal de la API. Posteriormente, ejecutar el comando de restauración. Este comando (válido para Símbolo del Sistema en Windows, PowerShell o Bash en Linux) leerá el archivo `.csproj` y descargará automáticamente todas las librerías necesarias.
 
 ```bash
-git clone 
+git clone https://github.com/OriShady/SecureCampus.git
 cd SecureCampus/SecureCampus.API
 dotnet restore
 ```
