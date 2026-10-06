@@ -7,6 +7,25 @@ Este proyecto se desarrolla como parte práctica de la asignatura de Desarrollo 
 1. **Fase Funcional:** Construcción inicial de la API de manera estrictamente funcional e insegura. En esta etapa se omiten deliberadamente controles de acceso, cifrado de datos, manejo seguro de sesiones y saneamiento de entradas.
 2. **Fase de Aseguramiento:** El sistema será sometido a metodologías de modelado de amenazas y pruebas de seguridad (análisis estático SAST, análisis dinámico DAST y análisis interactivo IAST) para identificar las vulnerabilidades resultantes de la primera fase. Posteriormente, se implementarán los controles correspondientes y la gobernanza de seguridad a lo largo del Ciclo de Vida de Desarrollo de Software (SDLC).
 
+## Alcance del Proyecto
+
+### Requisitos Funcionales
+El sistema debe permitir las siguientes operaciones principales:
+*   **Gestión de Usuarios:** Registro, autenticación y administración de perfiles, diferenciando entre Estudiantes, Docentes y Administradores.
+*   **Gestión de Calificaciones:** Captura y modificación de calificaciones por parte del personal docente, y consulta del historial académico por parte de los estudiantes.
+*   **Gestión de Documentos:** Carga, almacenamiento y descarga de archivos relacionados con el perfil del estudiante (comprobantes, tareas o constancias).
+*   **Gestión de Cursos/Materias:** Creación de asignaturas y asignación de estudiantes y docentes a los grupos correspondientes.
+
+### Requisitos No Funcionales (Fase Funcional Inicial)
+*   **Arquitectura:** Sistema cliente-servidor basado en una API REST (ASP.NET Core 10.0) y una interfaz de usuario independiente.
+*   **Persistencia:** Almacenamiento estructurado mediante SQLite.
+*   **Ausencia Intencional de Seguridad:** El sistema operará temporalmente almacenando contraseñas en texto plano, sin tokens de autorización robustos (JWT) ni validación estricta de entradas. Esto es un requerimiento pedagógico para permitir el descubrimiento de vulnerabilidades.
+
+### Requisitos No Funcionales (Fase de Aseguramiento SDLC)
+*   **Auditoría de Código:** El repositorio debe ser compatible con la integración de herramientas de análisis estático (SAST) y análisis dinámico (DAST).
+*   **Mitigación y Cumplimiento:** Tras la auditoría, el sistema deberá ser refactorizado para implementar controles criptográficos, saneamiento de datos y políticas de control de acceso alineadas a los estándares de OWASP.
+
+
 ## Requisitos del Sistema
 Para ejecutar y colaborar en el desarrollo de este proyecto, es necesario contar con el siguiente entorno instalado:
 *   **SDK de .NET 10.0** (Entorno de ejecución y herramientas de compilación).
@@ -42,16 +61,18 @@ Clonar el repositorio en el equipo local y acceder al directorio principal de la
 git clone 
 cd SecureCampus/SecureCampus.API
 dotnet restore
+```
 
-### 4. Configuración de la Base de Datos Local
+### 3. Configuración de la Base de Datos Local
 
 El repositorio no incluye el archivo físico de la base de datos. Para generarlo en el entorno local, es necesario contar con las herramientas de Entity Framework y aplicar las migraciones correspondientes. Ejecutar los siguientes comandos en la terminal, asegurando estar dentro del directorio `SecureCampus.API`:
 
 ```bash
 dotnet tool install --global dotnet-ef
 dotnet ef database update
+```
 
-### 5. Pruebas de Endpoints
+### 4. Pruebas de Endpoints
 
 Las peticiones hacia la API deben realizarse mediante un cliente REST. Se recomienda utilizar la extensión **Thunder Client** en Visual Studio Code o Postman.
 
