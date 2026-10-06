@@ -19,6 +19,6 @@ namespace SecureCampus.API.Models
  
         /// Obtiene o establece el nivel de privilegios asignado.
    
-        public string Rol { get; set; } = string.Empty;
+        public RolUsuario Rol { get; set; }
     }
 }
