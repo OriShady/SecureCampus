@@ -18,5 +18,22 @@ namespace SecureCampus.API.Data
         public DbSet<Calificacion> Calificaciones { get; set; }
         /// 
         public DbSet<Documento> Documentos { get; set; }
+        /// Configura la entidad Carrera en la base de datos
+        public DbSet<Carrera> Carreras { get; set; }
+
+        /// Configura la entidad Departamento en la base de datos
+        public DbSet<Departamento> Departamentos { get; set; }
+
+        /// Configura la entidad PerfilEstudiante en la base de datos
+        public DbSet<PerfilEstudiante> PerfilesEstudiantes { get; set; }
+
+        /// Configura la entidad PerfilProfesor en la base de datos
+        public DbSet<PerfilProfesor> PerfilesProfesores { get; set; }
+
+        /// Configura la entidad PerfilJefe en la base de datos
+        public DbSet<PerfilJefe> PerfilesJefes { get; set; }
+
+        /// Configura la entidad PerfilAdministrador en la base de datos
+        public DbSet<PerfilAdministrador> PerfilesAdministradores { get; set; }
     }
 }
