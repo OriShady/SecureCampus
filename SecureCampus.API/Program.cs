@@ -7,10 +7,27 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<SecureCampusContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Agrega el servicio de CORS al contenedor de dependencias
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("PermitirFrontend", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 // Agrega el soporte para controladores
 builder.Services.AddControllers();
 
 var app = builder.Build();
+
+// Registra el componente de manejo de errores
+app.UseMiddleware<SecureCampus.API.Middlewares.ErrorHandlerMiddleware>();
+
+// Habilita el middleware de CORS utilizando la politica definida
+app.UseCors("PermitirFrontend");
 
 // Mapea las rutas de los controladores
 app.MapControllers();
