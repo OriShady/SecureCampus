@@ -1,4 +1,9 @@
+"use client";
+
 import Sidebar from "../../components/Sidebar";
+import LogoutButton from "../../components/LogoutButton";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 // Define la estructura maestra para las pantallas internas del sistema en formato de filas.
 export default function DashboardLayout({
@@ -6,6 +11,30 @@ export default function DashboardLayout({
 }: {
     children: React.ReactNode;
 }) {
+    const router = useRouter();
+    const [autenticado, setAutenticado] = useState(false);
+
+    // Verifica la existencia de una sesion activa antes de renderizar la interfaz.
+    useEffect(() => {
+        const data = localStorage.getItem("usuario");
+        if (!data) {
+            router.push("/");
+        } else {
+            // Ignora la advertencia de renderizado para establecer el estado de autenticacion.
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setAutenticado(true);
+        }
+    }, [router]);
+
+    // Retorna un indicador de carga mientras se valida la sesion para evitar accesos visuales no autorizados.
+    if (!autenticado) {
+        return (
+            <div className="flex h-screen bg-slate-50 items-center justify-center">
+                <div className="w-12 h-12 border-4 border-blue-900 border-t-orange-500 rounded-full animate-spin"></div>
+            </div>
+        );
+    }
+
     return (
         <div className="flex flex-col h-screen bg-slate-50 overflow-hidden">
             {/* Fila Superior: Encabezado de ancho completo con diseno flotante */}
@@ -15,9 +44,9 @@ export default function DashboardLayout({
                         <h1 className="text-3xl font-serif font-bold tracking-wide">SecureCampus</h1>
                         <p className="text-blue-200 mt-1 text-sm font-medium tracking-wide uppercase">Portal Academico</p>
                     </div>
-                    <button className="text-blue-100 font-bold hover:text-white transition-colors text-sm tracking-wide uppercase">
-                        Cerrar Sesion
-                    </button>
+                    
+                    <LogoutButton />
+                    
                 </header>
             </div>
             

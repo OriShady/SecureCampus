@@ -3,13 +3,8 @@
 import { useState } from "react";
 import { api } from "../services/api";
 
-// Define las propiedades para la navegacion del componente.
-interface RegisterFormProps {
-    onNavigateToLogin: () => void;
-}
-
-// Define el componente de interfaz para el registro de nuevos usuarios.
-export default function RegisterForm({ onNavigateToLogin }: RegisterFormProps) {
+// Define el componente de interfaz para el registro de nuevos usuarios en el panel de administracion.
+export default function RegisterForm() {
     // Define el estado local para los datos del usuario.
     const [nombre, setNombre] = useState("");
     const [correo, setCorreo] = useState("");
@@ -32,25 +27,26 @@ export default function RegisterForm({ onNavigateToLogin }: RegisterFormProps) {
             setMensaje({ texto: "Usuario registrado exitosamente.", tipo: "exito" });
             console.log("Registro exitoso:", response);
             
-            // Limpia el formulario despues del registro.
+            // Limpia el formulario despues de la transaccion.
             setNombre("");
             setCorreo("");
             setPassword("");
             setRol("0");
         } catch (err) {
+            // Establece el mensaje de error en caso de fallo en la transaccion.
             setMensaje({ texto: "Error al registrar el usuario.", tipo: "error" });
         }
     };
 
     return (
-        <div className="mx-auto w-full max-w-md bg-white/10 backdrop-blur-lg p-8 rounded-3xl shadow-2xl border border-white/20">
-            <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold text-white tracking-tight mb-2">Nuevo Registro</h2>
-                <div className="h-1 w-16 bg-orange-500 mx-auto rounded-full mb-4"></div>
+        <div className="w-full bg-blue-950 p-8 rounded-xl shadow-md border border-gray-200">
+            <div className="mb-6">
+                <h2 className="text-2xl font-bold text-white tracking-tight mb-2">Nuevo Registro</h2>
+                <div className="h-1 w-16 bg-orange-500 rounded-full"></div>
             </div>
             
             {mensaje.texto && (
-                <div className={`p-4 mb-6 rounded text-sm backdrop-blur-sm border-l-4 ${mensaje.tipo === "exito" ? "bg-green-500/20 border-green-500 text-green-100" : "bg-red-500/20 border-red-500 text-red-100"}`}>
+                <div className={`p-4 mb-6 rounded text-sm border-l-4 ${mensaje.tipo === "exito" ? "bg-green-100 border-green-500 text-green-700" : "bg-red-100 border-red-500 text-red-700"}`}>
                     <p>{mensaje.texto}</p>
                 </div>
             )}
@@ -85,12 +81,6 @@ export default function RegisterForm({ onNavigateToLogin }: RegisterFormProps) {
                     Crear Cuenta
                 </button>
             </form>
-            
-            <div className="mt-6 text-center">
-                <button onClick={onNavigateToLogin} className="text-blue-200 text-sm hover:text-white transition-colors">
-                    ¿Ya tienes cuenta? Inicia sesion
-                </button>
-            </div>
         </div>
     );
 }
