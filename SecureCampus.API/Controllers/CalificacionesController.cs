@@ -39,5 +39,14 @@ namespace SecureCampus.API.Controllers
             // Retorna el estado de creacion
             return CreatedAtAction(nameof(GetCalificaciones), new { id = calificacion.Id }, calificacion);
         }
+
+        /// Recupera el historial de calificaciones asociado a un estudiante especifico.
+        [HttpGet("estudiante/{estudianteId}")]
+        public async Task<ActionResult<IEnumerable<Calificacion>>> GetCalificacionesPorEstudiante(int estudianteId)
+        {
+            return await _context.Calificaciones
+                .Where(c => c.EstudianteId == estudianteId)
+                .ToListAsync();
+        }
     }
 }

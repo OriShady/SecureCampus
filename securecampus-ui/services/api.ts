@@ -16,5 +16,12 @@ export const api = {
         });
         if (!res.ok) throw new Error("Error en peticion POST");
         return res.json();
+    },
+    delete: async (endpoint: string) => {
+        const res = await fetch(`${API_URL}${endpoint}`, {
+            method: "DELETE",
+        });
+        if (!res.ok) throw new Error("Error en peticion DELETE");
+        return res.json();
     }
 };

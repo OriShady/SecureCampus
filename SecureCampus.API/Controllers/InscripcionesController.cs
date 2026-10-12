@@ -19,12 +19,20 @@ namespace SecureCampus.API.Controllers
             _context = context;
         }
 
-        /// Inserta un nuevo registro de inscripcion en el sistema.
+        /// Inserta un nuevo registro de inscripcion validando que no existan duplicados.
         /// Entidad de inscripcion a registrar.
-        /// Confirmacion de la creacion y datos de la inscripcion.
+        /// Confirmacion de la creacion o error de validacion.
         [HttpPost]
         public async Task<ActionResult<Inscripcion>> PostInscripcion(Inscripcion inscripcion)
         {
+            var inscripcionDuplicada = await _context.Inscripciones
+                .AnyAsync(i => i.CursoId == inscripcion.CursoId && i.EstudianteId == inscripcion.EstudianteId);
+
+            if (inscripcionDuplicada)
+            {
+                return BadRequest(new { mensaje = "El estudiante ya esta matriculado en este curso." });
+            }
+
             _context.Inscripciones.Add(inscripcion);
             await _context.SaveChangesAsync();
 
@@ -41,6 +49,24 @@ namespace SecureCampus.API.Controllers
                 .Include(i => i.Estudiante)
                 .Where(i => i.CursoId == cursoId)
                 .ToListAsync();
+        }
+
+        /// Elimina un registro de inscripcion existente mediante su identificador.
+        /// Identificador de la inscripcion a eliminar.
+        /// Estado de la operacion.
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteInscripcion(int id)
+        {
+            var inscripcion = await _context.Inscripciones.FindAsync(id);
+            if (inscripcion == null)
+            {
+                return NotFound(new { mensaje = "El registro de inscripcion no existe." });
+            }
+
+            _context.Inscripciones.Remove(inscripcion);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { mensaje = "El alumno ha sido dado de baja de la materia exitosamente." });
         }
     }
 }

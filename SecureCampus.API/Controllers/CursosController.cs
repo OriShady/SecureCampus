@@ -39,5 +39,14 @@ namespace SecureCampus.API.Controllers
             // Retorna el estado de creacion
             return CreatedAtAction(nameof(GetCursos), new { id = curso.Id }, curso);
         }
+
+        /// Configura la peticion GET para obtener los cursos asignados a un profesor especifico.
+        [HttpGet("profesor/{profesorId}")]
+        public async Task<ActionResult<IEnumerable<Curso>>> GetCursosPorProfesor(int profesorId)
+        {
+            return await _context.Cursos
+                .Where(c => c.ProfesorId == profesorId)
+                .ToListAsync();
+        }
     }
 }
