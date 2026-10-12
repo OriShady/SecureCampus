@@ -23,20 +23,27 @@ namespace SecureCampus.API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Departamento>>> GetDepartamentos()
         {
-            // Retorna el registro de la base de datos
-            return await _context.Departamentos.ToListAsync();
+            return await _context.Departamentos
+                .OrderBy(d => d.Nombre)
+                .ToListAsync();
         }
 
         /// Configura la peticion POST
         [HttpPost]
         public async Task<ActionResult<Departamento>> PostDepartamento(Departamento departamento)
         {
-            // Agrega la entidad al contexto
+            departamento.Nombre = departamento.Nombre.Trim();
+
+            var departamentoExistente = await _context.Departamentos
+                .AnyAsync(d => d.Nombre.ToLower() == departamento.Nombre.ToLower());
+            if (departamentoExistente)
+            {
+                return Conflict(new { mensaje = "Ya existe un departamento con ese nombre." });
+            }
+
             _context.Departamentos.Add(departamento);
-            // Aplica la transaccion en la base de datos
             await _context.SaveChangesAsync();
 
-            // Retorna el estado de creacion
             return CreatedAtAction(nameof(GetDepartamentos), new { id = departamento.Id }, departamento);
         }
     }

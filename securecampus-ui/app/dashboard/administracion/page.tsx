@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import RegistroUsuarioForm from "../../../components/RegistroUsuarioForm";
 import UserList from "../../../components/UserList";
+import AsignarDepartamentos from "../../../components/AsignarDepartamentos";
 
 /// Define el componente principal de la vista de administracion.
 export default function Administracion() {
@@ -19,7 +20,6 @@ export default function Administracion() {
                 setAutorizado(true);
             }
         }
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setVerificando(false);
     }, []);
 
@@ -49,13 +49,16 @@ export default function Administracion() {
                 <p className="text-gray-600 mt-2">Gestiona los accesos, roles y permisos de la plataforma.</p>
             </div>
             
-            <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-                <div className="xl:col-span-5">
-                    <RegistroUsuarioForm />
-                </div>
-                <div className="xl:col-span-7 bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                    <h3 className="text-lg font-bold text-blue-900 mb-4 border-b pb-2">Usuarios Registrados</h3>
-                    <UserList />
+            <div className="space-y-6">
+                <AsignarDepartamentos />
+                <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+                    <div className="xl:col-span-5">
+                        <RegistroUsuarioForm />
+                    </div>
+                    <div className="xl:col-span-7 bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                        <h3 className="text-lg font-bold text-blue-900 mb-4 border-b pb-2">Usuarios Registrados</h3>
+                        <UserList />
+                    </div>
                 </div>
             </div>
         </div>

@@ -1,2 +1,39 @@
 @import "tailwindcss";
 
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+
+  .printable-area,
+  .printable-area * {
+    visibility: visible !important;
+  }
+
+  .printable-area {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: white !important;
+    color: black !important;
+  }
+
+  .print-hidden {
+    display: none !important;
+  }
+
+  .printable-area table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  .printable-area th,
+  .printable-area td {
+    border: 1px solid #9ca3af !important;
+    color: black !important;
+  }
+}

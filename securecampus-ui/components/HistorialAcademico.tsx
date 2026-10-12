@@ -24,16 +24,20 @@ interface RegistroAcademico {
 export default function HistorialAcademico() {
     const [registros, setRegistros] = useState<RegistroAcademico[]>([]);
     const [cargando, setCargando] = useState(true);
+    const [error, setError] = useState("");
 
     /// Recupera los datos de evaluacion y el catalogo de materias al inicializar el componente.
     useEffect(() => {
         const cargarHistorial = async () => {
             const dataSesion = localStorage.getItem("usuario");
-            if (!dataSesion) return;
-
-            const usuario = JSON.parse(dataSesion);
+            if (!dataSesion) {
+                setError("No se encontro una sesion activa.");
+                setCargando(false);
+                return;
+            }
 
             try {
+                const usuario: { id: number } = JSON.parse(dataSesion);
                 // Ejecuta consultas en paralelo para optimizar el tiempo de respuesta.
                 const [calificacionesData, cursosData] = await Promise.all([
                     api.get(`/calificaciones/estudiante/${usuario.id}`),
@@ -53,6 +57,7 @@ export default function HistorialAcademico() {
                 setRegistros(historialEstructurado);
             } catch (error) {
                 console.error(error);
+                setError("No se pudo cargar tu historial academico. Intenta recargar la pagina.");
             } finally {
                 setCargando(false);
             }
@@ -65,9 +70,13 @@ export default function HistorialAcademico() {
         return <div className="text-center p-8 text-gray-500 text-sm">Cargando registros academicos...</div>;
     }
 
+    if (error) {
+        return <div role="alert" className="rounded border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>;
+    }
+
     return (
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            <h3 className="text-lg font-bold text-blue-900 mb-4 border-b pb-2">Kardex de Calificaciones</h3>
+            <h3 className="text-lg font-bold text-blue-900 mb-4 border-b pb-2">Historial Academico</h3>
             
             <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">

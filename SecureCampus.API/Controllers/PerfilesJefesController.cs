@@ -31,6 +31,23 @@ namespace SecureCampus.API.Controllers
         [HttpPost]
         public async Task<ActionResult<PerfilJefe>> PostPerfil(PerfilJefe perfil)
         {
+            var jefeValido = await _context.Usuarios
+                .AnyAsync(u => u.Id == perfil.UsuarioId && u.Rol == RolUsuario.JefeCarrera);
+            if (!jefeValido)
+            {
+                return BadRequest(new { mensaje = "La cuenta seleccionada no tiene el rol de jefe de carrera." });
+            }
+
+            if (!await _context.Departamentos.AnyAsync(d => d.Id == perfil.DepartamentoId))
+            {
+                return BadRequest(new { mensaje = "El departamento seleccionado no existe." });
+            }
+
+            if (await _context.PerfilesJefes.AnyAsync(p => p.UsuarioId == perfil.UsuarioId))
+            {
+                return BadRequest(new { mensaje = "El jefe de carrera ya tiene un perfil departamental asignado." });
+            }
+
             _context.PerfilesJefes.Add(perfil);
 
             await _context.SaveChangesAsync();

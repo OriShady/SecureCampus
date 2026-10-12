@@ -31,6 +31,23 @@ namespace SecureCampus.API.Controllers
         [HttpPost]
         public async Task<ActionResult<PerfilProfesor>> PostPerfilProfesor(PerfilProfesor perfilProfesor)
         {
+            var profesorValido = await _context.Usuarios
+                .AnyAsync(u => u.Id == perfilProfesor.UsuarioId && u.Rol == RolUsuario.Profesor);
+            if (!profesorValido)
+            {
+                return BadRequest(new { mensaje = "La cuenta seleccionada no tiene el rol de profesor." });
+            }
+
+            if (!await _context.Departamentos.AnyAsync(d => d.Id == perfilProfesor.DepartamentoId))
+            {
+                return BadRequest(new { mensaje = "El departamento seleccionado no existe." });
+            }
+
+            if (await _context.PerfilesProfesores.AnyAsync(p => p.UsuarioId == perfilProfesor.UsuarioId))
+            {
+                return BadRequest(new { mensaje = "El profesor ya tiene un perfil departamental asignado." });
+            }
+
             // Agrega la entidad al contexto
             _context.PerfilesProfesores.Add(perfilProfesor);
             // Aplica la transaccion en la base de datos

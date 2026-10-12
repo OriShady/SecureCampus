@@ -11,10 +11,13 @@ Este proyecto se desarrolla como parte práctica de la asignatura de Desarrollo 
 
 ### Requisitos Funcionales
 El sistema permite las siguientes operaciones principales:
-*   **Gestión de Usuarios:** Registro, autenticación y administración de perfiles, con diferenciación entre Estudiantes, Docentes y Administradores.
-*   **Gestión de Calificaciones:** Captura y modificación de calificaciones por parte del personal docente, y consulta del historial académico para estudiantes.
-*   **Gestión de Documentos:** Carga, almacenamiento y descarga de archivos vinculados al perfil del estudiante.
+*   **Gestión de Usuarios:** Registro, autenticación y administración de perfiles para Estudiantes, Docentes, Administradores y Jefes de Carrera.
+*   **Gestión de Calificaciones:** Captura de calificaciones por parte del personal docente y consulta de solo lectura del historial académico por estudiantes.
+*   **Listas de Grupo:** Consulta e impresión de las listas de alumnos inscritos en los grupos asignados a cada profesor.
+*   **Gestión de Documentos:** Carga y descarga de archivos del perfil del estudiante (PDF, PNG y JPG de hasta 10 MB).
 *   **Gestión de Cursos/Materias:** Creación de asignaturas y asignación de estudiantes y docentes a los grupos correspondientes.
+*   **Reportes Académicos:** Consulta de solo lectura de calificaciones de los cursos impartidos por docentes del departamento del Jefe de Carrera.
+*   **Catálogos institucionales:** Carreras y departamentos se administran por separado; los estudiantes se vinculan a una carrera y los perfiles de profesores y jefes a un departamento.
 
 ### Requisitos No Funcionales (Fase Funcional Inicial)
 *   **Arquitectura:** Sistema cliente-servidor basado en una API REST (ASP.NET Core 10.0) y una interfaz de usuario independiente.

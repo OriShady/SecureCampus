@@ -29,9 +29,20 @@ namespace SecureCampus.API.Controllers
          
          /// Coleccion de objetos tipo Usuario.
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Usuario>>> GetUsuarios()
+        public async Task<ActionResult<IEnumerable<UsuarioResumenDTO>>> GetUsuarios()
         {
-            return await _context.Usuarios.ToListAsync();
+            return await _context.Usuarios
+                .Select(usuario => new UsuarioResumenDTO
+                {
+                    Id = usuario.Id,
+                    Nombre = usuario.Nombre,
+                    ApellidoPaterno = usuario.ApellidoPaterno,
+                    ApellidoMaterno = usuario.ApellidoMaterno,
+                    Correo = usuario.Correo,
+                    Telefono = usuario.Telefono,
+                    Rol = usuario.Rol
+                })
+                .ToListAsync();
         }
 
 
@@ -58,6 +69,15 @@ namespace SecureCampus.API.Controllers
         [HttpPost]
         public async Task<ActionResult<Usuario>> PostUsuario(RegistroUsuarioDTO registro)
         {
+            if (registro.Rol is RolUsuario.Profesor or RolUsuario.JefeCarrera)
+            {
+                if (!registro.DepartamentoId.HasValue ||
+                    !await _context.Departamentos.AnyAsync(d => d.Id == registro.DepartamentoId.Value))
+                {
+                    return BadRequest(new { mensaje = "Selecciona un departamento valido para este perfil." });
+                }
+            }
+
             var nuevoUsuario = new Usuario
             {
                 Nombre = registro.Nombre,
@@ -70,6 +90,7 @@ namespace SecureCampus.API.Controllers
             };
 
             _context.Usuarios.Add(nuevoUsuario);
+            await using var transaccion = await _context.Database.BeginTransactionAsync();
             await _context.SaveChangesAsync();
 
             if (registro.Rol == RolUsuario.Estudiante && registro.CarreraId.HasValue)
@@ -87,8 +108,29 @@ namespace SecureCampus.API.Controllers
                 };
 
                 _context.PerfilesEstudiantes.Add(perfilEstudiante);
-                await _context.SaveChangesAsync();
             }
+            else if (registro.Rol == RolUsuario.Profesor)
+            {
+                _context.PerfilesProfesores.Add(new PerfilProfesor
+                {
+                    NumeroEmpleado = $"DOC-{nuevoUsuario.Id:00000}",
+                    UsuarioId = nuevoUsuario.Id,
+                    DepartamentoId = registro.DepartamentoId!.Value
+                });
+            }
+            else if (registro.Rol == RolUsuario.JefeCarrera)
+            {
+                _context.PerfilesJefes.Add(new PerfilJefe
+                {
+                    NumeroEmpleado = $"JEF-{nuevoUsuario.Id:00000}",
+                    FechaNombramiento = DateTime.UtcNow,
+                    UsuarioId = nuevoUsuario.Id,
+                    DepartamentoId = registro.DepartamentoId!.Value
+                });
+            }
+
+            await _context.SaveChangesAsync();
+            await transaccion.CommitAsync();
 
             return CreatedAtAction(nameof(GetUsuario), new { id = nuevoUsuario.Id }, nuevoUsuario);
         }

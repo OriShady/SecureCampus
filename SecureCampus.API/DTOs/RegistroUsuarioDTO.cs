@@ -17,5 +17,8 @@ namespace SecureCampus.API.DTOs
         
         /// Define el identificador de la carrera asignada si el rol corresponde a un estudiante.
         public int? CarreraId { get; set; }
+
+        /// Define el departamento de profesores y jefes de carrera.
+        public int? DepartamentoId { get; set; }
     }
 }

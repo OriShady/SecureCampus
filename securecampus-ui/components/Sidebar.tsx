@@ -41,7 +41,16 @@ export default function Sidebar() {
                     <Link href="/dashboard/calificaciones" className="flex items-center px-4 py-3 hover:bg-white/10 hover:text-orange-500 transition-all">
                         <div className="min-w-[2rem] flex justify-center"><BookOpen size={20} /></div>
                         <span className="ml-4 text-sm font-semibold tracking-wide whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            Calificaciones
+                            {rolUsuario === 0 ? "Historial Academico" : "Calificaciones"}
+                        </span>
+                    </Link>
+                )}
+
+                {rolUsuario === 1 && (
+                    <Link href="/dashboard/mis-listas" className="flex items-center px-4 py-3 hover:bg-white/10 hover:text-orange-500 transition-all">
+                        <div className="min-w-[2rem] flex justify-center"><ClipboardList size={20} /></div>
+                        <span className="ml-4 text-sm font-semibold tracking-wide whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            Mis Listas
                         </span>
                     </Link>
                 )}
@@ -56,6 +65,15 @@ export default function Sidebar() {
                     </Link>
                 )}
 
+                {rolUsuario === 3 && (
+                    <Link href="/dashboard/reportes-academicos" className="flex items-center px-4 py-3 hover:bg-white/10 hover:text-orange-500 transition-all">
+                        <div className="min-w-[2rem] flex justify-center"><ClipboardList size={20} /></div>
+                        <span className="ml-4 text-sm font-semibold tracking-wide whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            Reportes Academicos
+                        </span>
+                    </Link>
+                )}
+
                 {/* Modulos exclusivos para Administradores (2) */}
                 {rolUsuario === 2 && (
                     <>
@@ -63,6 +81,12 @@ export default function Sidebar() {
                             <div className="min-w-[2rem] flex justify-center"><GraduationCap size={20} /></div>
                             <span className="ml-4 text-sm font-semibold tracking-wide whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                 Carreras
+                            </span>
+                        </Link>
+                        <Link href="/dashboard/departamentos" className="flex items-center px-4 py-3 hover:bg-white/10 hover:text-orange-500 transition-all">
+                            <div className="min-w-[2rem] flex justify-center"><GraduationCap size={20} /></div>
+                            <span className="ml-4 text-sm font-semibold tracking-wide whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                Departamentos
                             </span>
                         </Link>
                         <Link href="/dashboard/cursos" className="flex items-center px-4 py-3 hover:bg-white/10 hover:text-orange-500 transition-all">

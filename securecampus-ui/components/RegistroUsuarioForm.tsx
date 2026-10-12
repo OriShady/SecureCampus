@@ -8,6 +8,11 @@ interface Carrera {
     nombre: string;
 }
 
+interface Departamento {
+    id: number;
+    nombre: string;
+}
+
 /// Define el componente para el formulario de registro de usuarios en el sistema.
 export default function RegistroUsuarioForm() {
     const [nombre, setNombre] = useState("");
@@ -18,21 +23,36 @@ export default function RegistroUsuarioForm() {
     const [telefono, setTelefono] = useState("");
     const [rol, setRol] = useState("0");
     const [carreraId, setCarreraId] = useState("");
+    const [departamentoId, setDepartamentoId] = useState("");
     
     const [carreras, setCarreras] = useState<Carrera[]>([]);
+    const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
     const [mensaje, setMensaje] = useState({ texto: "", tipo: "" });
 
     /// Obtiene el catalogo de carreras disponibles desde la API.
     useEffect(() => {
         const cargarCatalogo = async () => {
             try {
-                const data = await api.get("/carreras");
-                setCarreras(data);
+                const [carrerasData, departamentosData] = await Promise.all([
+                    api.get("/carreras"),
+                    api.get("/departamentos"),
+                ]);
+                setCarreras(carrerasData);
+                setDepartamentos(departamentosData);
             } catch (error) {
                 console.error(error);
             }
         };
+
+        const actualizarDepartamentos = () => {
+            void api.get("/departamentos")
+                .then(setDepartamentos)
+                .catch((error: unknown) => console.error(error));
+        };
+
         cargarCatalogo();
+        window.addEventListener("departamentos-actualizados", actualizarDepartamentos);
+        return () => window.removeEventListener("departamentos-actualizados", actualizarDepartamentos);
     }, []);
 
     /// Procesa los datos del formulario y ejecuta la peticion de creacion.
@@ -47,7 +67,8 @@ export default function RegistroUsuarioForm() {
                 password,
                 telefono,
                 rol: parseInt(rol),
-                carreraId: rol === "0" && carreraId !== "" ? parseInt(carreraId) : null
+                carreraId: rol === "0" && carreraId !== "" ? parseInt(carreraId) : null,
+                departamentoId: (rol === "1" || rol === "3") && departamentoId !== "" ? parseInt(departamentoId) : null
             };
 
             await api.post("/usuarios", payload);
@@ -61,8 +82,12 @@ export default function RegistroUsuarioForm() {
             setTelefono("");
             setRol("0");
             setCarreraId("");
+            setDepartamentoId("");
         } catch (error) {
-            setMensaje({ texto: "Fallo en el procesamiento del registro.", tipo: "error" });
+            setMensaje({
+                texto: error instanceof Error ? error.message : "Fallo en el procesamiento del registro.",
+                tipo: "error"
+            });
         }
     };
 
@@ -104,7 +129,10 @@ export default function RegistroUsuarioForm() {
                     </div>
                     <div>
                         <label className="block text-blue-100 text-xs font-semibold mb-1">Rol en el Sistema</label>
-                        <select className="w-full p-2 bg-blue-900 border border-blue-300/30 rounded text-white text-sm focus:outline-none focus:border-orange-500" value={rol} onChange={(e) => setRol(e.target.value)} required>
+                        <select className="w-full p-2 bg-blue-900 border border-blue-300/30 rounded text-white text-sm focus:outline-none focus:border-orange-500" value={rol} onChange={(e) => {
+                            setRol(e.target.value);
+                            setDepartamentoId("");
+                        }} required>
                             <option value="0">Estudiante</option>
                             <option value="1">Profesor</option>
                             <option value="2">Administrador</option>
@@ -119,6 +147,23 @@ export default function RegistroUsuarioForm() {
                                 <option value="">Seleccione una carrera...</option>
                                 {carreras.map(c => (
                                     <option key={c.id} value={c.id}>{c.nombre}</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
+
+                    {(rol === "1" || rol === "3") && (
+                        <div>
+                            <label className="block text-blue-100 text-xs font-semibold mb-1">Departamento asignado</label>
+                            <select
+                                className="w-full p-2 bg-blue-900 border border-blue-300/30 rounded text-white text-sm focus:outline-none focus:border-orange-500"
+                                value={departamentoId}
+                                onChange={(e) => setDepartamentoId(e.target.value)}
+                                required
+                            >
+                                <option value="">Seleccione un departamento...</option>
+                                {departamentos.map(departamento => (
+                                    <option key={departamento.id} value={departamento.id}>{departamento.nombre}</option>
                                 ))}
                             </select>
                         </div>
