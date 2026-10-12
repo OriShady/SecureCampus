@@ -35,5 +35,6 @@ namespace SecureCampus.API.Data
 
         /// Configura la entidad PerfilAdministrador en la base de datos
         public DbSet<PerfilAdministrador> PerfilesAdministradores { get; set; }
+        public DbSet<Inscripcion> Inscripciones { get; set; }
     }
 }

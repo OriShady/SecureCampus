@@ -9,10 +9,19 @@ namespace SecureCampus.API.Models
         [Key]
         public int Id { get; set; }
 
-        /// Obtiene o establece el nombre completo.
+        /// Obtiene o establece el nombre o nombres de pila.
         [Required(ErrorMessage = "El nombre es obligatorio.")]
-        [StringLength(100, ErrorMessage = "El nombre no puede exceder los 100 caracteres.")]
+        [StringLength(50, ErrorMessage = "El nombre no puede exceder los 50 caracteres.")]
         public string Nombre { get; set; } = string.Empty;
+
+        /// Obtiene o establece el apellido paterno.
+        [Required(ErrorMessage = "El apellido paterno es obligatorio.")]
+        [StringLength(50, ErrorMessage = "El apellido paterno no puede exceder los 50 caracteres.")]
+        public string ApellidoPaterno { get; set; } = string.Empty;
+
+        /// Obtiene o establece el apellido materno.
+        [StringLength(50, ErrorMessage = "El apellido materno no puede exceder los 50 caracteres.")]
+        public string ApellidoMaterno { get; set; } = string.Empty;
 
         /// Obtiene o establece el correo electronico.
         [Required(ErrorMessage = "El correo es obligatorio.")]
@@ -23,7 +32,12 @@ namespace SecureCampus.API.Models
         /// Obtiene o establece la clave de acceso.
         [Required(ErrorMessage = "La contrasena es obligatoria.")]
         public string Password { get; set; } = string.Empty;
- 
+
+        /// Obtiene o establece el numero telefonico de contacto.
+        [StringLength(15, ErrorMessage = "El telefono no puede exceder los 15 caracteres.")]
+        public string Telefono { get; set; } = string.Empty;
+
+        /// Obtiene o establece el nivel de privilegios asignado.
         /// Obtiene o establece el nivel de privilegios asignado.
         [Required(ErrorMessage = "El rol es obligatorio.")]
         public RolUsuario Rol { get; set; }

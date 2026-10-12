@@ -49,6 +49,7 @@ namespace SecureCampus.API.Migrations
 
                     b.Property<string>("Nombre")
                         .IsRequired()
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -64,6 +65,7 @@ namespace SecureCampus.API.Migrations
 
                     b.Property<string>("Nombre")
                         .IsRequired()
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("ProfesorId")
@@ -84,6 +86,7 @@ namespace SecureCampus.API.Migrations
 
                     b.Property<string>("Nombre")
                         .IsRequired()
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -105,10 +108,12 @@ namespace SecureCampus.API.Migrations
 
                     b.Property<string>("NombreArchivo")
                         .IsRequired()
+                        .HasMaxLength(255)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("RutaFisica")
                         .IsRequired()
+                        .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -116,6 +121,27 @@ namespace SecureCampus.API.Migrations
                     b.HasIndex("EstudianteId");
 
                     b.ToTable("Documentos");
+                });
+
+            modelBuilder.Entity("SecureCampus.API.Models.Inscripcion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CursoId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("EstudianteId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CursoId");
+
+                    b.HasIndex("EstudianteId");
+
+                    b.ToTable("Inscripciones");
                 });
 
             modelBuilder.Entity("SecureCampus.API.Models.PerfilAdministrador", b =>
@@ -126,10 +152,12 @@ namespace SecureCampus.API.Migrations
 
                     b.Property<string>("NivelAcceso")
                         .IsRequired()
+                        .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("NumeroEmpleado")
                         .IsRequired()
+                        .HasMaxLength(20)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("UsuarioId")
@@ -151,6 +179,7 @@ namespace SecureCampus.API.Migrations
 
                     b.Property<string>("NumeroControl")
                         .IsRequired()
+                        .HasMaxLength(20)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("SemestreActual")
@@ -178,6 +207,7 @@ namespace SecureCampus.API.Migrations
 
                     b.Property<string>("NumeroEmpleado")
                         .IsRequired()
+                        .HasMaxLength(20)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("UsuarioId")
@@ -199,6 +229,7 @@ namespace SecureCampus.API.Migrations
 
                     b.Property<string>("NumeroEmpleado")
                         .IsRequired()
+                        .HasMaxLength(20)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("UsuarioId")
@@ -215,12 +246,24 @@ namespace SecureCampus.API.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("ApellidoMaterno")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ApellidoPaterno")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Correo")
                         .IsRequired()
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
+                        .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Password")
@@ -229,6 +272,11 @@ namespace SecureCampus.API.Migrations
 
                     b.Property<int>("Rol")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("Telefono")
+                        .IsRequired()
+                        .HasMaxLength(15)
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
@@ -272,6 +320,25 @@ namespace SecureCampus.API.Migrations
                         .HasForeignKey("EstudianteId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Estudiante");
+                });
+
+            modelBuilder.Entity("SecureCampus.API.Models.Inscripcion", b =>
+                {
+                    b.HasOne("SecureCampus.API.Models.Curso", "Curso")
+                        .WithMany()
+                        .HasForeignKey("CursoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SecureCampus.API.Models.Usuario", "Estudiante")
+                        .WithMany()
+                        .HasForeignKey("EstudianteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Curso");
 
                     b.Navigation("Estudiante");
                 });
