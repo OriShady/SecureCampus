@@ -23,22 +23,59 @@ namespace SecureCampus.API.Controllers
         /// Inserta un nuevo registro de inscripcion validando que no existan duplicados.
         /// Entidad de inscripcion a registrar.
         /// Confirmacion de la creacion o error de validacion.
-        [HttpPost]
-        public async Task<ActionResult<Inscripcion>> PostInscripcion(Inscripcion inscripcion)
+        
+    [HttpPost]
+    public async Task<ActionResult<Inscripcion>> PostInscripcion(
+        Inscripcion inscripcion)
+    {
+        // Verificar que el estudiante no esté inscrito.
+        var inscripcionDuplicada = await _context.Inscripciones
+            .AnyAsync(i =>
+                i.CursoId == inscripcion.CursoId &&
+                i.EstudianteId == inscripcion.EstudianteId);
+
+        if (inscripcionDuplicada)
         {
-            var inscripcionDuplicada = await _context.Inscripciones
-                .AnyAsync(i => i.CursoId == inscripcion.CursoId && i.EstudianteId == inscripcion.EstudianteId);
-
-            if (inscripcionDuplicada)
+            return BadRequest(new
             {
-                return BadRequest(new { mensaje = "El estudiante ya esta matriculado en este curso." });
-            }
-
-            _context.Inscripciones.Add(inscripcion);
-            await _context.SaveChangesAsync();
-
-            return Ok(inscripcion);
+                mensaje = "El estudiante ya esta matriculado en este curso."
+            });
         }
+
+        // Iniciar una transaccion.
+        await using var transaccion =
+            await _context.Database.BeginTransactionAsync();
+
+        // Registrar la inscripcion.
+        _context.Inscripciones.Add(inscripcion);
+        await _context.SaveChangesAsync();
+
+        // Registrar la actividad en el historial.
+        var log = new LogActividad
+        {
+            Fecha = DateTime.UtcNow,
+            Categoria = "Inscripcion",
+            Accion = "InscripcionRegistrada",
+            Descripcion =
+                $"Se registro la inscripcion del estudiante {inscripcion.EstudianteId} " +
+                $"al curso {inscripcion.CursoId}.",
+
+            // No inventamos quien realizo la operacion.
+            UsuarioId = null,
+
+            // Estudiante relacionado con la inscripcion.
+            UsuarioAfectadoId = inscripcion.EstudianteId
+        };
+
+        _context.LogsActividad.Add(log);
+        await _context.SaveChangesAsync();
+
+        // Confirmar la inscripcion y su log.
+        await transaccion.CommitAsync();
+
+        return Ok(inscripcion);
+    }
+
 
         /// Recupera el listado de inscripciones asociadas a un curso especifico.
         /// Identificador del curso.
@@ -100,19 +137,57 @@ namespace SecureCampus.API.Controllers
         /// Elimina un registro de inscripcion existente mediante su identificador.
         /// Identificador de la inscripcion a eliminar.
         /// Estado de la operacion.
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteInscripcion(int id)
+        
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteInscripcion(int id)
+    {
+        // Buscar la inscripcion que se desea eliminar.
+        var inscripcion = await _context.Inscripciones.FindAsync(id);
+
+        if (inscripcion == null)
         {
-            var inscripcion = await _context.Inscripciones.FindAsync(id);
-            if (inscripcion == null)
+            return NotFound(new
             {
-                return NotFound(new { mensaje = "El registro de inscripcion no existe." });
-            }
-
-            _context.Inscripciones.Remove(inscripcion);
-            await _context.SaveChangesAsync();
-
-            return Ok(new { mensaje = "El alumno ha sido dado de baja de la materia exitosamente." });
+                mensaje = "El registro de inscripcion no existe."
+            });
         }
+
+        // Guardar los identificadores antes de eliminar.
+        int estudianteId = inscripcion.EstudianteId;
+        int cursoId = inscripcion.CursoId;
+
+        // Iniciar una transaccion.
+        await using var transaccion =
+            await _context.Database.BeginTransactionAsync();
+
+        // Eliminar la inscripcion.
+        _context.Inscripciones.Remove(inscripcion);
+
+        // Registrar la actividad de cancelacion.
+        var log = new LogActividad
+        {
+            Fecha = DateTime.UtcNow,
+            Categoria = "Inscripcion",
+            Accion = "InscripcionCancelada",
+            Descripcion =
+                $"Se dio de baja al estudiante {estudianteId} del curso {cursoId}.",
+            UsuarioId = null,
+            UsuarioAfectadoId = estudianteId
+        };
+
+        _context.LogsActividad.Add(log);
+
+        // Guardar ambos cambios en SQLite.
+        await _context.SaveChangesAsync();
+
+        // Confirmar la transaccion.
+        await transaccion.CommitAsync();
+
+        return Ok(new
+        {
+            mensaje = "El alumno ha sido dado de baja de la materia exitosamente."
+        });
+    }
+
     }
 }
