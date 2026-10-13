@@ -256,10 +256,16 @@ namespace SecureCampus.API.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime?>("BloqueadoHasta")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Correo")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("IntentosFallidos")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -276,6 +282,9 @@ namespace SecureCampus.API.Migrations
                     b.Property<string>("Telefono")
                         .IsRequired()
                         .HasMaxLength(15)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("UltimoIntentoFallido")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");

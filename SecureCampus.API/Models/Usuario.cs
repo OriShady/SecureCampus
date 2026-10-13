@@ -41,5 +41,15 @@ namespace SecureCampus.API.Models
         /// Obtiene o establece el nivel de privilegios asignado.
         [Required(ErrorMessage = "El rol es obligatorio.")]
         public RolUsuario Rol { get; set; }
+        
+        /// Número de intentos fallidos consecutivos.
+        public int IntentosFallidos { get; set; } = 0;
+
+        /// Fecha y hora UTC hasta la que estará bloqueada la cuenta.
+        public DateTime? BloqueadoHasta { get; set; }
+
+        /// Fecha y hora UTC del último intento fallido.
+        public DateTime? UltimoIntentoFallido { get; set; }
+
     }
 }

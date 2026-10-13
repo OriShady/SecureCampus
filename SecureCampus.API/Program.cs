@@ -21,7 +21,21 @@ builder.Services.AddCors(options =>
 // Agrega el soporte para controladores
 builder.Services.AddControllers();
 
+// Agrega los servicios necesarios para Swagger
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+
 var app = builder.Build();
+
+
+// Habilita Swagger en el entorno de desarrollo
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
 
 // Registra el componente de manejo de errores
 app.UseMiddleware<SecureCampus.API.Middlewares.ErrorHandlerMiddleware>();

@@ -1,50 +1,103 @@
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SecureCampus.API.Data;
-using SecureCampus.API.Models;
+using SecureCampus.API.DTOs;
 
 namespace SecureCampus.API.Controllers
 {
-    /// Define la estructura de datos para recibir las credenciales de acceso.
-    public class LoginRequest
-    {
-        public string Correo { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
-    }
-
-    /// Define la ruta de acceso al controlador de autenticacion.
     [Route("api/[controller]")]
     [ApiController]
     public class AuthController : ControllerBase
     {
-        /// Almacena la referencia al contexto.
         private readonly SecureCampusContext _context;
 
-        /// Inicializa el contexto.
         public AuthController(SecureCampusContext context)
         {
             _context = context;
         }
 
-        /// Configura la peticion POST para validar el acceso.
+        // Inicio de sesion con bloqueo temporal.
         [HttpPost("login")]
-        public async Task<ActionResult<Usuario>> Login([FromBody] LoginRequest request)
+        public async Task<IActionResult> Login(
+            [FromBody] LoginDTO request)
         {
-            // Busca el registro que coincida con las credenciales proporcionadas.
+            // Buscar usuario por correo, sin comprobar
+            // todavia la contraseña.
             var usuario = await _context.Usuarios
-                .FirstOrDefaultAsync(u => u.Correo == request.Correo && u.Password == request.Password);
+                .FirstOrDefaultAsync(u =>
+                    u.Correo == request.Correo);
 
-            // Retorna un estado no autorizado si el registro no existe.
             if (usuario == null)
             {
-                return Unauthorized(new { mensaje = "Credenciales invalidas." });
+                return Unauthorized(new
+                {
+                    mensaje = "Credenciales invalidas."
+                });
             }
 
-            // Oculta la clave de acceso antes de retornar el registro al cliente.
-            usuario.Password = string.Empty;
+            var ahora = DateTime.UtcNow;
 
-            // Retorna el registro con estado exitoso.
-            return Ok(usuario);
+            // Comprobar si la cuenta sigue bloqueada.
+            if (usuario.BloqueadoHasta > ahora)
+            {
+                return StatusCode(423, new
+                {
+                    mensaje = "Cuenta bloqueada temporalmente. Intenta mas tarde."
+                });
+            }
+
+            // Reiniciar contador si el bloqueo ya termino.
+            if (usuario.BloqueadoHasta != null)
+            {
+                usuario.IntentosFallidos = 0;
+                usuario.BloqueadoHasta = null;
+            }
+
+            // Comparacion provisional de contraseña.
+            // La proteccion de contraseñas queda pendiente.
+            if (usuario.Password != request.Password)
+            {
+                usuario.IntentosFallidos++;
+                usuario.UltimoIntentoFallido = ahora;
+
+                // Bloquear al llegar a tres intentos.
+                if (usuario.IntentosFallidos >= 3)
+                {
+                    usuario.BloqueadoHasta =
+                        ahora.AddMinutes(15);
+
+                    await _context.SaveChangesAsync();
+
+                    return StatusCode(423, new
+                    {
+                        mensaje = "Cuenta bloqueada durante 15 minutos."
+                    });
+                }
+
+                await _context.SaveChangesAsync();
+
+                return Unauthorized(new
+                {
+                    mensaje = "Credenciales invalidas."
+                });
+            }
+
+            // Reiniciar contador si el acceso es correcto.
+            usuario.IntentosFallidos = 0;
+            usuario.BloqueadoHasta = null;
+
+            await _context.SaveChangesAsync();
+
+            // Responder sin incluir la contraseña.
+            return Ok(new
+            {
+                mensaje = "Inicio de sesion correcto.",
+                usuario.Id,
+                usuario.Nombre,
+                usuario.Correo,
+                usuario.Rol
+            });
         }
     }
 }

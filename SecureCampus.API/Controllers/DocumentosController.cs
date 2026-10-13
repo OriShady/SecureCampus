@@ -56,9 +56,12 @@ namespace SecureCampus.API.Controllers
                 .ToListAsync();
         }
 
-        [HttpPost("estudiante/{estudianteId}")]
-        [RequestSizeLimit(MaximoBytesArchivo + 64 * 1024)]
-        public async Task<ActionResult<DocumentoResumenDTO>> SubirDocumento(int estudianteId, [FromForm] IFormFile archivo)
+        
+            [HttpPost("estudiante/{estudianteId}")]
+            [RequestSizeLimit(MaximoBytesArchivo + 64 * 1024)]
+            [Consumes("multipart/form-data")]
+            public async Task<ActionResult<DocumentoResumenDTO>> SubirDocumento(int estudianteId, IFormFile archivo)
+
         {
             var esEstudiante = await _context.Usuarios
                 .AnyAsync(u => u.Id == estudianteId && u.Rol == RolUsuario.Estudiante);
