@@ -144,6 +144,38 @@ namespace SecureCampus.API.Migrations
                     b.ToTable("Inscripciones");
                 });
 
+            modelBuilder.Entity("SecureCampus.API.Models.LogActividad", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Accion")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Categoria")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("UsuarioAfectadoId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("UsuarioId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("LogsActividad");
+                });
+
             modelBuilder.Entity("SecureCampus.API.Models.PerfilAdministrador", b =>
                 {
                     b.Property<int>("Id")

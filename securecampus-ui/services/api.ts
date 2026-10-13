@@ -23,11 +23,29 @@ async function getErrorMessage(response: Response, method: string): Promise<stri
 
 // Proporciona metodos para realizar peticiones HTTP.
 export const api = {
-    get: async (endpoint: string) => {
-        const res = await fetch(`${API_URL}${endpoint}`);
-        if (!res.ok) throw new Error(await getErrorMessage(res, "GET"));
+    
+    get: async (endpoint: string, token?: string) => {
+        // Prepara los encabezados de la solicitud.
+        const headers: HeadersInit = {};
+
+        // Agrega el token cuando se proporciona.
+        if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+        }
+
+        // Realiza la consulta al backend.
+        const res = await fetch(`${API_URL}${endpoint}`, {
+            headers
+        });
+
+        // Controla los errores de la API.
+        if (!res.ok) {
+            throw new Error(await getErrorMessage(res, "GET"));
+        }
+
         return res.json();
     },
+
     post: async (endpoint: string, data: unknown) => {
         const res = await fetch(`${API_URL}${endpoint}`, {
             method: "POST",

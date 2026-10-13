@@ -18,18 +18,36 @@ export default function LoginForm() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            // Ejecuta la peticion POST hacia el endpoint de autenticacion.
-            const response = await api.post("/auth/login", { correo, password });
             
-            // Guarda los datos del usuario en el almacenamiento local.
-            localStorage.setItem("usuario", JSON.stringify(response));
+            const response = await api.post("/auth/login", {
+                correo,
+                password
+            });
+
+            // Guarda los datos del usuario para mostrar su perfil.
+            const { token, ...datosUsuario } = response;
+
+            localStorage.setItem(
+                "usuario",
+                JSON.stringify(datosUsuario)
+            );
+
+            // Conserva el token temporalmente en la pestaña actual.
+            sessionStorage.setItem("token", token);
+
             
             // Redirige a la vista del panel principal.
             router.push("/dashboard");
+
         } catch (err) {
-            // Establece el mensaje de error en caso de fallo.
-            setError("Credenciales invalidas o error de conexion.");
+            // Muestra el mensaje real enviado por el backend.
+            if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError("Ocurrio un error inesperado.");
+            }
         }
+
     };
 
     return (
