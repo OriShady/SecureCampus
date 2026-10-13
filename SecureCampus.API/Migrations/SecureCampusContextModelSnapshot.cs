@@ -29,14 +29,18 @@ namespace SecureCampus.API.Migrations
                     b.Property<int>("EstudianteId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<decimal>("Valor")
-                        .HasColumnType("TEXT");
+                    b.Property<int>("NumeroParcial")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Valor")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CursoId");
 
-                    b.HasIndex("EstudianteId");
+                    b.HasIndex("EstudianteId", "CursoId", "NumeroParcial")
+                        .IsUnique();
 
                     b.ToTable("Calificaciones");
                 });
@@ -61,6 +65,9 @@ namespace SecureCampus.API.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("CantidadParciales")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Nombre")

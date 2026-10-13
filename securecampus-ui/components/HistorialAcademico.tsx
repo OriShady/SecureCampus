@@ -3,28 +3,34 @@
 import { useEffect, useState } from "react";
 import { api } from "../services/api";
 
+
 interface Curso {
     id: number;
     nombre: string;
+    cantidadParciales: number;
 }
 
 interface Calificacion {
     id: number;
     cursoId: number;
+    numeroParcial: number;
     valor: number;
 }
 
 interface RegistroAcademico {
-    idCalificacion: number;
+    cursoId: number;
     nombreCurso: string;
-    calificacionFinal: number;
+    parciales: Calificacion[];
+    calificacionFinal: number | null;
 }
 
 /// Define el componente de solo lectura para visualizar el historial de evaluaciones del estudiante.
 export default function HistorialAcademico() {
     const [registros, setRegistros] = useState<RegistroAcademico[]>([]);
     const [cargando, setCargando] = useState(true);
-    const [error, setError] = useState("");
+    const [error, setError] = useState("");    
+    const [promedioGeneral, setPromedioGeneral] = useState<number | null>(null);
+
 
     /// Recupera los datos de evaluacion y el catalogo de materias al inicializar el componente.
     useEffect(() => {
@@ -39,22 +45,58 @@ export default function HistorialAcademico() {
             try {
                 const usuario: { id: number } = JSON.parse(dataSesion);
                 // Ejecuta consultas en paralelo para optimizar el tiempo de respuesta.
-                const [calificacionesData, cursosData] = await Promise.all([
+                
+                const [calificacionesData, cursosData, promedioData] = await Promise.all([
                     api.get(`/calificaciones/estudiante/${usuario.id}`),
-                    api.get("/cursos")
+                    api.get("/cursos"),
+                    api.get(`/calificaciones/promedio-general/estudiante/${usuario.id}`)
                 ]);
 
-                // Cruza los datos para asignar el nombre de la materia a la calificacion correspondiente.
-                const historialEstructurado = calificacionesData.map((cal: Calificacion) => {
-                    const cursoAsignado = cursosData.find((c: Curso) => c.id === cal.cursoId);
-                    return {
-                        idCalificacion: cal.id,
-                        nombreCurso: cursoAsignado ? cursoAsignado.nombre : "Materia no identificada",
-                        calificacionFinal: cal.valor
-                    };
-                });
+                // Guarda el promedio general calculado por la API.
+                setPromedioGeneral(promedioData.promedioGeneral);
+
+                
+                // Agrupa los parciales de cada materia.
+                const historialEstructurado: RegistroAcademico[] =
+                    (cursosData as Curso[])
+                        .map((curso) => {
+                            // Busca las calificaciones de este curso.
+                            const parciales = (calificacionesData as Calificacion[])
+                                .filter((cal) => cal.cursoId === curso.id)
+                                .sort((a, b) => a.numeroParcial - b.numeroParcial);
+
+                            // Omite cursos sin calificaciones registradas.
+                            if (parciales.length === 0) {
+                                return null;
+                            }
+
+                            // Solo calcula el promedio cuando
+                            // todos los parciales estan registrados.
+                            const calificacionFinal =
+                                curso.cantidadParciales > 0 &&
+                                parciales.length === curso.cantidadParciales
+                                    ? Math.round(
+                                        parciales.reduce(
+                                            (suma, parcial) => suma + parcial.valor,
+                                            0
+                                        ) / curso.cantidadParciales
+                                    )
+                                    : null;
+
+                            return {
+                                cursoId: curso.id,
+                                nombreCurso: curso.nombre,
+                                parciales,
+                                calificacionFinal
+                            };
+                        })
+                        .filter(
+                            (registro): registro is RegistroAcademico =>
+                                registro !== null
+                        );
 
                 setRegistros(historialEstructurado);
+
             } catch (error) {
                 console.error(error);
                 setError("No se pudo cargar tu historial academico. Intenta recargar la pagina.");
@@ -80,24 +122,54 @@ export default function HistorialAcademico() {
             
             <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="bg-slate-100 text-blue-900">
-                            <th className="p-3 font-semibold text-sm">Materia</th>
-                            <th className="p-3 font-semibold text-sm text-right">Calificacion Final</th>
+                    
+                <thead>
+                    <tr className="bg-slate-100 text-blue-900">
+                        <th className="p-3 font-semibold text-sm">
+                            Materia
+                        </th>
+                        <th className="p-3 font-semibold text-sm">
+                            Calificaciones parciales
+                        </th>
+                        <th className="p-3 font-semibold text-sm text-right">
+                            Calificacion final
+                        </th>
+                    </tr>
+                </thead>
+
+                    
+                <tbody>
+                    {registros.map((registro) => (
+                        <tr
+                            key={registro.cursoId}
+                            className="border-b border-gray-100 hover:bg-slate-50"
+                        >
+                            <td className="p-3 text-sm font-semibold text-gray-800">
+                                {registro.nombreCurso}
+                            </td>
+
+                            <td className="p-3">
+                                <div className="flex flex-wrap gap-2">
+                                    {registro.parciales.map((parcial) => (
+                                        <span
+                                            key={parcial.id}
+                                            className="bg-slate-100 border border-gray-200 rounded-md px-2 py-1 text-xs text-gray-700"
+                                        >
+                                            Parcial {parcial.numeroParcial}: {parcial.valor}
+                                        </span>
+                                    ))}
+                                </div>
+                            </td>
+
+                            <td className="p-3 text-sm font-mono text-right text-gray-700">
+                                {registro.calificacionFinal !== null
+                                    ? registro.calificacionFinal
+                                    : "Pendiente"}
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        {registros.map((registro) => (
-                            <tr key={registro.idCalificacion} className="border-b border-gray-100 hover:bg-slate-50">
-                                <td className="p-3 text-sm font-semibold text-gray-800">
-                                    {registro.nombreCurso}
-                                </td>
-                                <td className="p-3 text-sm font-mono text-right text-gray-700">
-                                    {registro.calificacionFinal}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
+                    ))}
+                </tbody>
+
                 </table>
                 
                 {registros.length === 0 && (
@@ -106,6 +178,29 @@ export default function HistorialAcademico() {
                     </p>
                 )}
             </div>
+            
+                {/* Promedio general del estudiante. */}
+                <div className="mt-6 bg-slate-50 border border-gray-200 rounded-lg p-4 flex items-center justify-between gap-4">
+                    <div>
+                        <p className="text-sm font-bold text-blue-900">
+                            Promedio general
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                            Calculado con las calificaciones finales de los cursos completados.
+                        </p>
+                    </div>
+
+                    {promedioGeneral !== null ? (
+                        <span className="text-2xl font-bold text-blue-900">
+                            {promedioGeneral.toFixed(2)}
+                        </span>
+                    ) : (
+                        <span className="text-sm font-semibold text-orange-600">
+                            Pendiente
+                        </span>
+                    )}
+                </div>
+
         </div>
     );
 }

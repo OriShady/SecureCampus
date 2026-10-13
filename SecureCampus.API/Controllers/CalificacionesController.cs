@@ -29,16 +29,106 @@ namespace SecureCampus.API.Controllers
         }
 
         /// Configura la peticion POST
+       
         [HttpPost]
         public async Task<ActionResult<Calificacion>> PostCalificacion(Calificacion calificacion)
         {
-            // Agrega la entidad al contexto
+            // Busca el curso al que pertenece la calificacion.
+            var curso = await _context.Cursos.FindAsync(calificacion.CursoId);
+
+            // Verifica que el curso exista.
+            if (curso == null)
+            {
+                return NotFound(new { mensaje = "El curso no existe." });
+            }
+
+            // Comprueba que el parcial corresponda a los configurados.
+            if (calificacion.NumeroParcial < 1 ||
+                calificacion.NumeroParcial > curso.CantidadParciales)
+            {
+                return BadRequest(new
+                {
+                    mensaje = $"El curso permite parciales del 1 al {curso.CantidadParciales}."
+                });
+            }
+
+            // Evita registrar dos calificaciones para el mismo parcial.
+            bool existeCalificacion = await _context.Calificaciones.AnyAsync(c =>
+                c.EstudianteId == calificacion.EstudianteId &&
+                c.CursoId == calificacion.CursoId &&
+                c.NumeroParcial == calificacion.NumeroParcial);
+
+            if (existeCalificacion)
+            {
+                return Conflict(new
+                {
+                    mensaje = "Este estudiante ya tiene una calificacion registrada para ese parcial."
+                });
+            }
+            
+            // Comprueba que el estudiante este inscrito en el curso.
+            bool estaInscrito = await _context.Inscripciones.AnyAsync(i =>
+                i.EstudianteId == calificacion.EstudianteId &&
+                i.CursoId == calificacion.CursoId);
+
+            if (!estaInscrito)
+            {
+                return BadRequest(new
+                {
+                    mensaje = "El estudiante no esta inscrito en este curso."
+                });
+            }
+
+            // Guarda la calificacion parcial.
             _context.Calificaciones.Add(calificacion);
-            // Aplica la transaccion en la base de datos
             await _context.SaveChangesAsync();
 
-            // Retorna el estado de creacion
-            return CreatedAtAction(nameof(GetCalificaciones), new { id = calificacion.Id }, calificacion);
+            return CreatedAtAction(
+                nameof(GetCalificaciones),
+                new { id = calificacion.Id },
+                calificacion);
+        }
+
+        
+        // Permite corregir el valor de una calificacion parcial.
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutCalificacion(
+            int id, [FromBody] int nuevoValor)
+        {
+            // Busca la calificacion registrada.
+            var calificacion = await _context.Calificaciones.FindAsync(id);
+
+            if (calificacion == null)
+            {
+                return NotFound(new
+                {
+                    mensaje = "La calificacion no existe."
+                });
+            }
+
+            // Valida que la nueva calificacion este entre 1 y 100.
+            if (nuevoValor < 1 || nuevoValor > 100)
+            {
+                return BadRequest(new
+                {
+                    mensaje = "La calificacion debe estar entre 1 y 100."
+                });
+            }
+
+            // Actualiza solamente el valor.
+            calificacion.Valor = nuevoValor;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                mensaje = "Calificacion actualizada correctamente.",
+                calificacion.Id,
+                calificacion.EstudianteId,
+                calificacion.CursoId,
+                calificacion.NumeroParcial,
+                calificacion.Valor
+            });
         }
 
         /// Recupera el historial de calificaciones asociado a un estudiante especifico.
@@ -48,6 +138,107 @@ namespace SecureCampus.API.Controllers
             return await _context.Calificaciones
                 .Where(c => c.EstudianteId == estudianteId)
                 .ToListAsync();
+        }
+
+        
+        // Calcula la calificacion final de un estudiante en un curso.
+        [HttpGet("promedio/estudiante/{estudianteId}/curso/{cursoId}")]
+        public async Task<IActionResult> GetPromedioCurso(int estudianteId, int cursoId)
+        {
+            // Busca el curso.
+            var curso = await _context.Cursos.FindAsync(cursoId);
+
+            if (curso == null)
+            {
+                return NotFound(new { mensaje = "El curso no existe." });
+            }
+
+            // Obtiene las calificaciones parciales del estudiante.
+            var calificaciones = await _context.Calificaciones
+                .Where(c => c.EstudianteId == estudianteId &&
+                            c.CursoId == cursoId)
+                .ToListAsync();
+
+            // Comprueba que todos los parciales esten registrados.
+            if (calificaciones.Count != curso.CantidadParciales)
+            {
+                return Ok(new
+                {
+                    mensaje = "Aun faltan parciales por registrar.",
+                    parcialesRegistrados = calificaciones.Count,
+                    totalParciales = curso.CantidadParciales,
+                    promedioFinal = (int?)null
+                });
+            }
+
+            // Calcula y redondea el promedio al entero mas cercano.
+            decimal promedio = calificaciones.Average(c => (decimal)c.Valor);
+            int promedioFinal = (int)Math.Round(
+                promedio, 0, MidpointRounding.AwayFromZero);
+
+            return Ok(new
+            {
+                estudianteId,
+                cursoId,
+                parcialesRegistrados = calificaciones.Count,
+                totalParciales = curso.CantidadParciales,
+                promedioFinal
+            });
+        }
+
+    
+        // Calcula el promedio general de un estudiante.
+        [HttpGet("promedio-general/estudiante/{estudianteId}")]
+        public async Task<IActionResult> GetPromedioGeneral(int estudianteId)
+        {
+            // Obtiene las calificaciones y la cantidad de parciales
+            // configurada para cada curso.
+            var calificaciones = await (
+                from c in _context.Calificaciones
+                join curso in _context.Cursos on c.CursoId equals curso.Id
+                where c.EstudianteId == estudianteId
+                select new
+                {
+                    c.CursoId,
+                    curso.CantidadParciales,
+                    c.Valor
+                }
+            ).ToListAsync();
+
+            // Agrupa las calificaciones por curso.
+            var promediosCursos = calificaciones
+                .GroupBy(c => c.CursoId)
+                .Where(grupo =>
+                    grupo.Count() == grupo.First().CantidadParciales)
+                .Select(grupo =>
+                    (int)Math.Round(
+                        grupo.Average(c => (decimal)c.Valor),
+                        0,
+                        MidpointRounding.AwayFromZero))
+                .ToList();
+
+            // Comprueba que exista al menos un curso terminado.
+            if (!promediosCursos.Any())
+            {
+                return Ok(new
+                {
+                    mensaje = "El estudiante aun no tiene cursos con todos sus parciales registrados.",
+                    promedioGeneral = (decimal?)null
+                });
+            }
+
+            // Calcula el promedio general con dos decimales.
+            decimal promedioGeneral = Math.Round(
+                promediosCursos.Average(c => (decimal)c),
+                2,
+                MidpointRounding.AwayFromZero);
+
+            return Ok(new
+            {
+                estudianteId,
+                cursosCompletados = promediosCursos.Count,
+                promedioGeneral
+            });
         }
 
         /// Recupera las calificaciones de cursos impartidos por profesores del departamento del jefe.

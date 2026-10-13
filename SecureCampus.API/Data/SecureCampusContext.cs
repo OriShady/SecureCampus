@@ -46,5 +46,24 @@ namespace SecureCampus.API.Data
 
         // Representa los registros de actividad del sistema.
         public DbSet<LogActividad> LogsActividad { get; set; }
+
+        
+        // Configura las restricciones de las tablas.
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // Evita calificaciones duplicadas para el mismo
+            // estudiante, curso y numero de parcial.
+            modelBuilder.Entity<Calificacion>()
+                .HasIndex(c => new
+                {
+                    c.EstudianteId,
+                    c.CursoId,
+                    c.NumeroParcial
+                })
+                .IsUnique();
+        }
+
     }
 }
