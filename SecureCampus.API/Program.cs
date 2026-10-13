@@ -3,15 +3,18 @@ using SecureCampus.API.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-
 using SecureCampus.API.Services;
-
-
 using Microsoft.OpenApi;
-
+using QuestPDF.Infrastructure;
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+// Configura QuestPDF para generar documentos academicos.
+// Community debe utilizarse solamente si se cumplen sus condiciones de licencia.
+QuestPDF.Settings.License = LicenseType.Community;
+
 
 // Establece la conexion a SQLite utilizando la cadena de configuracion
 builder.Services.AddDbContext<SecureCampusContext>(options =>

@@ -216,6 +216,9 @@ namespace SecureCampus.API.Migrations
                     b.Property<int>("CarreraId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("EstadoAcademico")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("NumeroControl")
                         .IsRequired()
                         .HasMaxLength(20)

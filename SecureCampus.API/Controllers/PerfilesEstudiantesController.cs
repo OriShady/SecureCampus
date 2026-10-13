@@ -40,5 +40,47 @@ namespace SecureCampus.API.Controllers
             // Retorna el estado de creacion
             return CreatedAtAction(nameof(GetPerfilesEstudiantes), new { id = perfilEstudiante.Id }, perfilEstudiante);
         }
+
+        
+        // Actualiza el estado academico de un estudiante.
+        [HttpPut("{id}/estado")]
+        public async Task<IActionResult> ActualizarEstadoAcademico(
+            int id, [FromBody] EstadoAcademico nuevoEstado)
+        {
+            // Busca el perfil academico.
+            var perfil = await _context.PerfilesEstudiantes.FindAsync(id);
+
+            if (perfil == null)
+            {
+                return NotFound(new
+                {
+                    mensaje = "El perfil del estudiante no existe."
+                });
+            }
+
+            // Comprueba que el estado recibido sea valido.
+            if (!Enum.IsDefined(typeof(EstadoAcademico), nuevoEstado))
+            {
+                return BadRequest(new
+                {
+                    mensaje = "El estado academico no es valido."
+                });
+            }
+
+            // Actualiza solamente el estado academico.
+            perfil.EstadoAcademico = nuevoEstado;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                mensaje = "Estado academico actualizado correctamente.",
+                perfil.Id,
+                perfil.UsuarioId,
+                estadoAcademico = perfil.EstadoAcademico.ToString()
+            });
+        }
+
+
     }
 }

@@ -63,11 +63,29 @@ export const api = {
         if (!res.ok) throw new Error(await getErrorMessage(res, "Carga de archivo"));
         return res.json();
     },
-    download: async (endpoint: string) => {
-        const res = await fetch(`${API_URL}${endpoint}`);
-        if (!res.ok) throw new Error(await getErrorMessage(res, "Descarga de archivo"));
+    
+    // Descarga archivos y permite enviar el token JWT.
+    download: async (endpoint: string, token?: string) => {
+        const headers: HeadersInit = {};
+
+        // Incluye el token cuando se proporciona.
+        if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+        }
+
+        const res = await fetch(`${API_URL}${endpoint}`, {
+            headers
+        });
+
+        if (!res.ok) {
+            throw new Error(
+                await getErrorMessage(res, "Descarga de archivo")
+            );
+        }
+
         return res.blob();
     },
+
     delete: async (endpoint: string) => {
         const res = await fetch(`${API_URL}${endpoint}`, {
             method: "DELETE",

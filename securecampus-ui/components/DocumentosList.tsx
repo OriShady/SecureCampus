@@ -26,6 +26,14 @@ export default function DocumentosList() {
     const [descargandoId, setDescargandoId] = useState<number | null>(null);
     const [mensaje, setMensaje] = useState({ texto: "", tipo: "" });
     const inputRef = useRef<HTMLInputElement>(null);
+    
+    const [token, setToken] = useState<string | null>(null);
+
+    
+    // Estado academico del estudiante.
+    // null significa que todavia no se ha consultado.
+    const [estadoAcademico, setEstadoAcademico] = useState<number | null>(null);
+
 
     useEffect(() => {
         const cargarDocumentos = async () => {
@@ -40,6 +48,32 @@ export default function DocumentosList() {
                 }
 
                 setEstudianteId(usuario.id);
+                
+                // Recupera el token JWT guardado al iniciar sesion.
+                const tokenGuardado = sessionStorage.getItem("token");
+                setToken(tokenGuardado);
+
+                
+                // Consulta el perfil academico del estudiante.
+                const perfiles: {
+                    usuarioId: number;
+                    estadoAcademico: number;
+                }[] = await api.get("/perfilesestudiantes");
+
+                // Busca el perfil correspondiente al usuario autenticado.
+                const perfil = perfiles.find(
+                    (p) => p.usuarioId === usuario.id
+                );
+
+                
+                
+                if (perfil) {
+                    setEstadoAcademico(perfil.estadoAcademico);
+                }
+
+
+
+
                 setDocumentos(await api.get(`/documentos/estudiante/${usuario.id}`));
             } catch (error) {
                 console.error(error);
@@ -93,6 +127,99 @@ export default function DocumentosList() {
         }
     };
 
+    
+    // Descarga el kardex academico del estudiante autenticado.
+    const descargarKardex = async () => {
+        if (estudianteId === null) return;
+
+        if (!token) {
+            setMensaje({
+                texto: "Tu sesion ha expirado. Inicia sesion nuevamente.",
+                tipo: "error"
+            });
+            return;
+        }
+
+        setMensaje({ texto: "", tipo: "" });
+
+        try {
+            // Solicita el PDF al backend utilizando el token JWT.
+            const contenido = await api.download(
+                `/documentos/estudiante/${estudianteId}/kardex`,
+                token
+            );
+
+            // Prepara el archivo para descargarlo.
+            const url = URL.createObjectURL(contenido);
+            const enlace = document.createElement("a");
+
+            enlace.href = url;
+            enlace.download = `Kardex_${estudianteId}.pdf`;
+
+            document.body.appendChild(enlace);
+            enlace.click();
+            enlace.remove();
+
+            URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error(error);
+            setMensaje({
+                texto: error instanceof Error
+                    ? error.message
+                    : "No se pudo descargar el kardex.",
+                tipo: "error"
+            });
+        }
+    };
+
+
+    
+    // Descarga la constancia de estudios del estudiante activo.
+    const descargarConstancia = async () => {
+        if (estudianteId === null) return;
+
+        if (!token) {
+            setMensaje({
+                texto: "Tu sesión ha expirado. Inicia sesión nuevamente.",
+                tipo: "error"
+            });
+            return;
+        }
+
+        setMensaje({ texto: "", tipo: "" });
+
+        try {
+            // Solicita la constancia utilizando el token JWT.
+            const contenido = await api.download(
+                `/documentos/estudiante/${estudianteId}/constancia`,
+                token
+            );
+
+            // Prepara la descarga del PDF.
+            const url = URL.createObjectURL(contenido);
+            const enlace = document.createElement("a");
+
+            enlace.href = url;
+            enlace.download = `Constancia_${estudianteId}.pdf`;
+
+            document.body.appendChild(enlace);
+            enlace.click();
+            enlace.remove();
+
+            URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error(error);
+
+            setMensaje({
+                texto: error instanceof Error
+                    ? error.message
+                    : "No se pudo descargar la constancia.",
+                tipo: "error"
+            });
+        }
+    };
+
+
     const descargar = async (documento: Documento) => {
         if (estudianteId === null) return;
 
@@ -123,6 +250,73 @@ export default function DocumentosList() {
 
     return (
         <div className="space-y-6">
+            
+            {/* Seccion de documentos academicos */}
+            <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+                <h3 className="mb-2 text-lg font-bold text-blue-900">
+                     Documentos 
+                </h3>
+
+            
+                <div className="rounded-lg border border-gray-200 bg-slate-50 p-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <p className="font-semibold text-gray-800">
+                                Kardex académico
+                            </p> 
+
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={descargarKardex}
+                            disabled={estudianteId === null || !token}
+                            className="rounded bg-blue-900 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            Descargar 
+                        </button>
+                        
+                        {/* Constancia de estudios */}
+                        <div className="mt-3 rounded-lg border border-gray-200 bg-slate-50 p-4">
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <p className="font-semibold text-gray-800">
+                                        Constancia de estudios
+                                    </p>              
+                                    
+                                    {estadoAcademico === 1 && (
+                                        <p className="mt-2 text-sm font-medium text-orange-600">
+                                            ⚠️ No puedes descargar la constancia porque
+                                            tu estado académico es Baja.
+                                        </p>
+                                    )}
+
+                                    {estadoAcademico === 2 && (
+                                        <p className="mt-2 text-sm font-medium text-orange-600">
+                                            ⚠️ No puedes descargar la constancia porque
+                                            tu estado académico es Egresado.
+                                        </p>
+                                    )}
+                      
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={descargarConstancia}                                    
+                                    disabled={estudianteId === null || !token || estadoAcademico !== 0}
+                                    className="rounded bg-blue-900 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    Descargar 
+                                </button>
+
+
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
             <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
                 <h3 className="mb-2 text-lg font-bold text-blue-900">Cargar documento</h3>
                 <p className="mb-4 text-sm text-gray-600">Formatos permitidos: PDF, PNG y JPG. Tamano maximo: 10 MB.</p>

@@ -19,6 +19,13 @@ namespace SecureCampus.API.Models
         [Range(1, 12, ErrorMessage = "El semestre debe ser un valor valido entre 1 y 12.")]
         public int SemestreActual { get; set; }
 
+        
+        // Define la situacion academica del estudiante.
+        // Los perfiles nuevos tendran el estado Activo por defecto.
+        [Required]
+        public EstadoAcademico EstadoAcademico { get; set; } = EstadoAcademico.Activo;
+
+
         /// Define la llave foranea hacia el usuario
         [Required]
         public int UsuarioId { get; set; }
