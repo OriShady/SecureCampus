@@ -28,21 +28,48 @@ namespace SecureCampus.API.Controllers
         }
 
         // Registra un nuevo usuario en el sistema.
+        
+        // Registra un nuevo usuario y guarda la actividad.
         [HttpPost]
-        public async Task<ActionResult<Usuario>> PostUsuario(Usuario usuario)
+        public async Task<ActionResult<Usuario>> PostUsuario(
+            Usuario usuario)
         {
-            // Agrega el usuario a la base de datos.
-            _context.Usuarios.Add(usuario);
+            // Inicia una transaccion para guardar ambos registros.
+            await using var transaccion =
+                await _context.Database.BeginTransactionAsync();
 
-            // Guarda los cambios.
+            // Registra el nuevo usuario.
+            _context.Usuarios.Add(usuario);
             await _context.SaveChangesAsync();
 
-            // Devuelve el usuario registrado.
-            return CreatedAtAction(
-                nameof(GetUsuarios),
-                new { id = usuario.Id },
-                usuario
-            );
+            // Crea un log con el ID del usuario registrado.
+            var log = new LogActividad
+            {
+                Fecha = DateTime.UtcNow,
+                Categoria = "Usuario",
+                Accion = "UsuarioRegistrado",
+                Descripcion = "Se registro un nuevo usuario en SecureCampus.",
+                UsuarioId = null,
+                UsuarioAfectadoId = usuario.Id
+            };
+
+            // Guarda la actividad en SQLite.
+            _context.LogsActividad.Add(log);
+            await _context.SaveChangesAsync();
+
+            // Confirma ambos registros.
+            await transaccion.CommitAsync();
+
+            // Devuelve el resultado del registro sin contraseña.
+            return StatusCode(201, new
+            {
+                mensaje = "Usuario registrado correctamente.",
+                usuario.Id,
+                usuario.Nombre,
+                usuario.Correo,
+                usuario.Rol
+            });
         }
+
     }
 }
