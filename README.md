@@ -74,7 +74,32 @@ dotnet tool install --global dotnet-ef
 dotnet ef database update
 ```
 
-### 4. Pruebas de Endpoints
+### 4. Carga de datos de demostración
+
+El archivo `scripts/cargar-datos-demo.sql` crea datos ficticios para mostrar tres carreras, cinco grupos, tres profesores, 25 estudiantes, jefaturas, administración, inscripciones y calificaciones. También asigna a cada usuario un teléfono ficticio de 10 dígitos. Todos los usuarios de demostración usan la contraseña `DemoCampus26!`.
+
+**Este script elimina y reemplaza los datos de las tablas de la aplicación. Úsalo solo en una base local de demostración, nunca en producción.** Desde `SecureCampus.API`, detén la API y crea un respaldo antes de ejecutarlo:
+
+```bash
+sqlite3 SecureCampus.db ".backup 'SecureCampus.backup.db'"
+```
+
+Si la actualización de migraciones se detuvo al crear el índice único de calificaciones por registros de prueba repetidos, vacía primero las calificaciones de prueba y vuelve a aplicar las migraciones:
+
+```bash
+sqlite3 SecureCampus.db "DELETE FROM Calificaciones;"
+dotnet ef database update
+```
+
+Después carga los datos de demostración:
+
+```bash
+sqlite3 SecureCampus.db < scripts/cargar-datos-demo.sql
+```
+
+Los grupos y horarios se incluyen en el nombre de cada curso porque el modelo actual no tiene campos separados para esas propiedades. Los datos y credenciales son ficticios y están pensados únicamente para desarrollo local.
+
+### 5. Pruebas de Endpoints
 
 Las peticiones hacia la API deben realizarse mediante un cliente REST. Se recomienda utilizar la extensión **Thunder Client** en Visual Studio Code o Postman.
 
